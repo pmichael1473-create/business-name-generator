@@ -1,0 +1,8 @@
+{
+  "name": "NameForge",
+  "description": "Production-ready business name generator with AI-powered suggestions, domain checks, and SEO landing pages.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

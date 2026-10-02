@@ -20,11 +20,17 @@ const Home = () => {
     setIsLoading(true);
     setError(null);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout for AI
+
       const response = await fetch('/api/generate-names', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -43,11 +49,12 @@ const Home = () => {
       console.error('Generator Error:', err);
       let userMessage = err.message || 'Something went wrong. Please try again.';
       
-      // Handle environmental/extension errors that might be misreported
-      if (userMessage.includes('MetaMask') || userMessage.includes('ethereum')) {
-        userMessage = 'A browser extension (like MetaMask) is interfering with the request. Please try disabling it or using a different browser.';
+      if (err.name === 'AbortError') {
+        userMessage = 'The request timed out. The AI model is taking too long to respond. Please try again or simplify your description.';
+      } else if (userMessage.includes('MetaMask') || userMessage.includes('ethereum') || userMessage.includes('web3')) {
+        userMessage = 'A browser extension is interfering with the connection. Please disable any crypto-wallet extensions and refresh.';
       } else if (userMessage === 'Failed to fetch') {
-        userMessage = 'Unable to reach the server. Please check your internet connection or try again later.';
+        userMessage = 'Unable to reach the naming engine. This usually happens due to network issues or aggressive browser extensions.';
       }
       
       setError(userMessage);
@@ -103,7 +110,7 @@ const Home = () => {
                 Find the Perfect <span className="text-indigo-600">Business Name</span> in Seconds
               </h1>
               <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-xl">
-                Generate memorable, brandable business names tailored to your industry, keywords, audience, and brand style.
+                Generate memorable, brandable business names tailored to your industry, keywords, and style.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a href="#generator" className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2 group">
